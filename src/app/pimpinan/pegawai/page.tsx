@@ -1,18 +1,19 @@
 "use client";
 
 import Link from "next/link";
+
 import { useEffect, useState } from "react";
-import ManagementLayout
-from "@/components/layouts/ManagementLayout";
+import PimpinanLayout
+from "@/components/layouts/PimpinanLayout";
 import { getPegawai } from "@/services/pegawai.service";
 import {
   deletePegawai,
 } from "@/services/pegawai.service";
 import Button from "@/components/ui/Button"
 import PageHeader from "@/components/ui/PageHeader"
-import ActionButtons from "@/components/ui/ActionButtons";
+import ActionButtonsPimpinan from "@/components/ui/ActionButtonsPimpinan";
 import SearchBar from "@/components/ui/SearchBar";
-import PimpinanLayout from "@/components/layouts/PimpinanLayout";
+import Swal from "sweetalert2";
 
 export default function PegawaiPage() {
   const [pegawai, setPegawai] =
@@ -51,25 +52,45 @@ export default function PegawaiPage() {
 
     );
 
-  const handleDelete = async (
-    id: number
-  ) => {
-    const confirmDelete =
-      confirm(
-        "Yakin ingin menghapus data?"
-      );
+  const handleDelete = async (id: number) => {
 
-    if (!confirmDelete) return;
+    const result = await Swal.fire({
+        title: "Hapus Pegawai?",
+        text: "Data pegawai yang dihapus tidak dapat dikembalikan.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#16a34a",
+        cancelButtonColor: "#dc2626",
+        confirmButtonText: "Ya, Hapus",
+        cancelButtonText: "Batal",
+    });
+
+    if (!result.isConfirmed) return;
 
     try {
-      await deletePegawai(id);
 
-      alert("Data berhasil dihapus");
+        await deletePegawai(id);
 
-      loadPegawai();
-    } catch (error) {
-      console.log(error);
-      alert("Gagal menghapus data");
+        await Swal.fire({
+            icon: "success",
+            title: "Berhasil",
+            text: "Data pegawai berhasil dihapus.",
+            timer: 1500,
+            showConfirmButton: false,
+        });
+
+        loadPegawai();
+
+    } catch (err: any) {
+
+        Swal.fire({
+            icon: "error",
+            title: "Gagal",
+            text:
+                err?.response?.data?.message ||
+                "Gagal menghapus data pegawai.",
+        });
+
     }
   };
 
@@ -130,6 +151,7 @@ export default function PegawaiPage() {
             <th className="px-5 py-4 text-left font-semibold">Bidang</th>
             <th className="px-5 py-4 text-left font-semibold">Jabatan</th>
             <th className="px-5 py-4 text-left font-semibold">Golongan</th>
+            <th className="px-5 py-4 text-left font-semibold">Aksi</th>
           </tr>
         </thead>
 
@@ -157,12 +179,59 @@ export default function PegawaiPage() {
                 )}
               </td>
 
-              <td className="p-4">
-                {item.nip}
+              <td>
+                <td className="px-6 py-4">
+
+                    <Link
+                        href={`/pimpinan/pegawai/${item.id}`}
+                        className="
+                            inline-flex
+                            items-center
+                            gap-2
+
+                            text-gray-700
+
+                            hover:text-green-600
+                            hover:underline
+
+                            transition-all
+                            duration-200
+                        "
+                    >
+
+                        🆔 {item.nip}
+
+                    </Link>
+
+                </td>
               </td>
 
-              <td className="p-4">
-                {item.nama}
+              <td>
+                <td className="px-6 py-4">
+
+                    <Link
+                        href={`/pimpinan/pegawai/${item.id}`}
+                        className="
+                            inline-flex
+                            items-center
+                            gap-2
+
+                            font-semibold
+                            text-gray-800
+
+                            hover:text-green-600
+                            hover:underline
+
+                            transition-all
+                            duration-200
+                        "
+                    >
+
+                        👤 {item.nama}
+
+                    </Link>
+
+                </td>
               </td>
 
               <td className="p-4">
@@ -199,7 +268,7 @@ export default function PegawaiPage() {
                 >
                     💼 {item.jabatan?.nama}
                 </span>
-            </td> 
+            </td>
 
             <td className="p-4">
                 <span
@@ -218,7 +287,17 @@ export default function PegawaiPage() {
                     🎖 {item.golongan?.nama}
                 </span>
             </td> 
-                           
+
+
+              <td className="p-4">
+
+                <ActionButtonsPimpinan
+                  detailHref={`/pimpinan/pegawai/${item.id}`}
+              />
+
+            </td>
+
+                
             </tr>
           ))}
 

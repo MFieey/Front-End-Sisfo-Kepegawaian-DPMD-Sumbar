@@ -96,15 +96,27 @@ export default function MonitoringFilter({
 
                     </option>
 
-                    <option value="SUDAH">
-
-                    🟢 Sudah
-
-                    </option>
-
                     <option value="BELUM">
 
                     🟡 Belum
+
+                    </option>
+
+                    <option value="PROSES">
+
+                    🔵 Proses
+
+                    </option>
+
+                    <option value="SELESAI">
+
+                    🟢 Selesai
+
+                    </option>
+
+                    <option value="TIDAK NAIK">
+
+                    🔴 Tidak Naik
 
                     </option>
 

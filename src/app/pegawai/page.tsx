@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+
 import { useEffect, useState } from "react";
 import ManagementLayout
 from "@/components/layouts/ManagementLayout";
@@ -12,6 +13,7 @@ import Button from "@/components/ui/Button"
 import PageHeader from "@/components/ui/PageHeader"
 import ActionButtons from "@/components/ui/ActionButtons";
 import SearchBar from "@/components/ui/SearchBar";
+import Swal from "sweetalert2";
 
 export default function PegawaiPage() {
   const [pegawai, setPegawai] =
@@ -50,25 +52,45 @@ export default function PegawaiPage() {
 
     );
 
-  const handleDelete = async (
-    id: number
-  ) => {
-    const confirmDelete =
-      confirm(
-        "Yakin ingin menghapus data?"
-      );
+  const handleDelete = async (id: number) => {
 
-    if (!confirmDelete) return;
+    const result = await Swal.fire({
+        title: "Hapus Pegawai?",
+        text: "Data pegawai yang dihapus tidak dapat dikembalikan.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#16a34a",
+        cancelButtonColor: "#dc2626",
+        confirmButtonText: "Ya, Hapus",
+        cancelButtonText: "Batal",
+    });
+
+    if (!result.isConfirmed) return;
 
     try {
-      await deletePegawai(id);
 
-      alert("Data berhasil dihapus");
+        await deletePegawai(id);
 
-      loadPegawai();
-    } catch (error) {
-      console.log(error);
-      alert("Terjadi Kesalahan");
+        await Swal.fire({
+            icon: "success",
+            title: "Berhasil",
+            text: "Data pegawai berhasil dihapus.",
+            timer: 1500,
+            showConfirmButton: false,
+        });
+
+        loadPegawai();
+
+    } catch (err: any) {
+
+        Swal.fire({
+            icon: "error",
+            title: "Gagal",
+            text:
+                err?.response?.data?.message ||
+                "Gagal menghapus data pegawai.",
+        });
+
     }
   };
 
@@ -165,12 +187,59 @@ export default function PegawaiPage() {
                 )}
               </td>
 
-              <td className="p-4">
-                {item.nip}
+              <td>
+                <td className="px-6 py-4">
+
+                    <Link
+                        href={`/pegawai/${item.id}`}
+                        className="
+                            inline-flex
+                            items-center
+                            gap-2
+
+                            text-gray-700
+
+                            hover:text-green-600
+                            hover:underline
+
+                            transition-all
+                            duration-200
+                        "
+                    >
+
+                        🆔 {item.nip}
+
+                    </Link>
+
+                </td>
               </td>
 
-              <td className="p-4">
-                {item.nama}
+              <td>
+                <td className="px-6 py-4">
+
+                    <Link
+                        href={`/pegawai/${item.id}`}
+                        className="
+                            inline-flex
+                            items-center
+                            gap-2
+
+                            font-semibold
+                            text-gray-800
+
+                            hover:text-green-600
+                            hover:underline
+
+                            transition-all
+                            duration-200
+                        "
+                    >
+
+                        👤 {item.nama}
+
+                    </Link>
+
+                </td>
               </td>
 
               <td className="p-4">
@@ -231,9 +300,10 @@ export default function PegawaiPage() {
               <td className="p-4">
 
                 <ActionButtons
-                    editHref={`/pegawai/edit/${item.id}`}
-                    onDelete={() => handleDelete(item.id)}
-                />
+                  detailHref={`/pegawai/${item.id}`}
+                  editHref={`/pegawai/edit/${item.id}`}
+                  onDelete={() => handleDelete(item.id)}
+              />
 
             </td>
 

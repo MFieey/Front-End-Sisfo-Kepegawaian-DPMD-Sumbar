@@ -4,13 +4,17 @@ type Props = {
 
     total:number;
 
-    sudah:number;
+    proses:number;
 
     belum:number;
 
     color:string;
 
     icon:string;
+
+    selesai:string;
+
+    tidakNaik:string;
 
 };
 
@@ -20,31 +24,19 @@ export default function MonitoringSummary({
 
     total,
 
-    sudah,
+    proses,
 
     belum,
 
     color,
 
     icon,
+    
+    selesai,
+
+    tidakNaik,
 
 }:Props){
-
-    const progress =
-
-        total===0
-
-        ?
-
-        0
-
-        :
-
-        Math.round(
-
-            (sudah/total)*100
-
-        );
 
     return(
 
@@ -102,27 +94,6 @@ export default function MonitoringSummary({
 
                     <span>
 
-                        🟢 Sudah
-
-                    </span>
-
-                    <span
-                    className="
-                    font-bold
-                    text-green-700
-                    "
-                    >
-
-                        {sudah} Pegawai
-
-                    </span>
-
-                </div>
-
-                <div className="flex justify-between items-center">
-
-                    <span>
-
                         🟡 Belum
 
                     </span>
@@ -140,62 +111,68 @@ export default function MonitoringSummary({
 
                 </div>
 
-            </div>
+                <div className="flex justify-between items-center">
 
-            <div className="mt-6">
+                    <span>
 
-                <p
+                        🔵 Proses
+
+                    </span>
+
+                    <span
                     className="
-                    text-sm
-                    font-semibold
-                    text-gray-600
-                    mb-2
-                    ">
-
-                    Progress Monitoring
-
-                    </p>
-
-                    <div
-                    className="
-                    w-full
-                    bg-gray-200
-                    rounded-full
-                    h-3
-                    ">
-
-                    <div
-
-                    className="
-                    bg-green-600
-                    h-3
-                    rounded-full
-                    transition-all
+                    font-bold
+                    text-blue-700
                     "
-
-                    style={{
-
-                    width:`${progress}%`
-
-                    }}
-
                     >
 
-                    </div>
+                        {proses} Pegawai
 
-                    </div>
+                    </span>
 
-                    <p
+                </div>
+
+                <div className="flex justify-between items-center">
+
+                    <span>
+
+                        🟢 Selesai
+
+                    </span>
+
+                    <span
                     className="
-                    text-right
-                    text-sm
-                    mt-2
-                    text-gray-500
-                    ">
+                    font-bold
+                    text-green-700
+                    "
+                    >
 
-                    {progress}%
+                        {selesai} Pegawai
 
-                    </p>
+                    </span>
+
+                </div>
+
+                <div className="flex justify-between items-center">
+
+                    <span>
+
+                        🔴 Tidak Naik
+
+                    </span>
+
+                    <span
+                    className="
+                    font-bold
+                    text-red-600
+                    "
+                    >
+
+                        {tidakNaik} Pegawai
+
+                    </span>
+
+                </div>
 
             </div>
 

@@ -61,7 +61,7 @@ export const deletePegawai = async (
 
 export const exportPegawaiPdf = async () => {
 
-    const response = await axios.get(
+    const response = await api.get(
         "/export/pegawai/pdf",
         {
             responseType: "blob",

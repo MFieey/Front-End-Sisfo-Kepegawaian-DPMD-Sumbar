@@ -20,10 +20,17 @@ from "@/components/monitoring/MonitoringFilter";
 import MonitoringTable
 from "@/components/monitoring/MonitoringTable";
 
+import Swal from "sweetalert2";
+import {
+    showSuccess,
+    showError
+} from "@/utils/toast";
+
 type Berkala = {
   id: number;
   tanggalBerkala: string;
   status: string;
+  catatan: string | null;
   fileSK: string | null;
   pegawai: {
     id: number;
@@ -63,23 +70,50 @@ export default function BerkalaPage() {
   const totalMonitoring =
     berkala.length;
 
-  const totalSudah =
+  const totalSelesai =
     berkala.filter(
-    (item)=>item.status==="SUDAH"
+        (item) => item.status === "SELESAI"
     ).length;
+
+  const totalProses =
+      berkala.filter(
+          (item) => item.status === "PROSES"
+      ).length;
 
   const totalBelum =
+      berkala.filter(
+          (item) => item.status === "BELUM"
+      ).length;
+
+  const totalTidakNaik =
     berkala.filter(
-    (item)=>item.status==="BELUM"
+        (item) => item.status === "TIDAK_NAIK"
     ).length;
 
-  const berkalaBelum = berkala.filter(
-    (item) => item.status === "BELUM"
-);
+  const progress =
+    berkala.length > 0
+        ? (totalSelesai / berkala.length) * 100
+        : 0;
 
-const berkalaSudah = berkala.filter(
-    (item) => item.status === "SUDAH"
-);  
+  const berkalaSelesai =
+    berkala.filter(
+    (item)=>item.status==="SELESAI"
+  );
+
+    const berkalaProses =
+    berkala.filter(
+    (item)=>item.status==="PROSES"
+  );
+
+    const berkalaBelum =
+    berkala.filter(
+    (item)=>item.status==="BELUM"
+  );
+
+  const berkalaTidakNaik =
+    berkala.filter(
+        (item) => item.status === "TIDAK_NAIK"
+    );
 
     const filteredBerkala =
     berkala.filter((item) => {
@@ -112,31 +146,53 @@ const berkalaSudah = berkala.filter(
 
     });
 
-  const handleDelete =
-    async (id: number) => {
-      const confirmDelete =
-        confirm(
-          "Yakin ingin menghapus data?"
-        );
+  const handleDelete = async (id: number) => {
 
-      if (!confirmDelete) return;
+    const result = await Swal.fire({
 
-      try {
+        title: "Hapus Data?",
+
+        text: "Data yang dihapus tidak dapat dikembalikan.",
+
+        icon: "warning",
+
+        showCancelButton: true,
+
+        confirmButtonColor: "#16a34a",
+
+        cancelButtonColor: "#dc2626",
+
+        confirmButtonText: "Ya, Hapus",
+
+        cancelButtonText: "Batal",
+
+        reverseButtons: true,
+
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+
         await deleteBerkala(id);
 
-        alert(
-          "Data berhasil dihapus"
+        showSuccess(
+            "Data berkala berhasil dihapus."
         );
 
         loadBerkala();
-      } catch (error) {
+
+    } catch (error) {
+
         console.log(error);
 
-        alert(
-          "Gagal menghapus data"
+        showError(
+            "Gagal menghapus data berkala."
         );
-      }
-    };
+
+    }
+
+  };
 
   return (
     <ManagementLayout>
@@ -236,27 +292,27 @@ const berkalaSudah = berkala.filter(
 
         <MonitoringSummary
 
-          title="Monitoring Berkala"
+          total={berkala.length}
 
-          total={totalMonitoring}
+          selesai={totalSelesai}
 
-          sudah={totalSudah}
+          proses={totalProses}
 
           belum={totalBelum}
 
-          color="text-yellow-600"
+          progress={progress}
 
-          icon="📅"
+          tidakNaik={totalTidakNaik}
 
-      />
+        />
 
-      <div className="grid grid-cols-4 gap-5 my-6">
+      <div className="grid grid-cols-6 gap-5 my-6">
 
         <div className="bg-green-50 rounded-2xl shadow p-5">
 
             <p className="text-gray-500">
 
-                📅 Berkala Bulan Ini
+                📅 Total Monitoring
 
             </p>
 
@@ -274,17 +330,17 @@ const berkalaSudah = berkala.filter(
 
         </div>
 
-        <div className="bg-emerald-50 rounded-2xl shadow p-5">
+        <div className="bg-green-50 rounded-2xl shadow p-5">
 
             <p className="text-gray-500">
 
-                🟢 Sudah
+                🟡 Belum
 
             </p>
 
-            <h2 className="text-4xl font-bold text-emerald-600 mt-2">
+            <h2 className="text-4xl font-bold text-yellow-600 mt-2">
 
-                {totalSudah}
+                {totalBelum}
 
             </h2>
 
@@ -296,17 +352,61 @@ const berkalaSudah = berkala.filter(
 
         </div>
 
-        <div className="bg-yellow-50 rounded-2xl shadow p-5">
+        <div className="bg-blue-50 rounded-2xl shadow p-5">
 
             <p className="text-gray-500">
 
-                🟡 Belum
+                🔵 Proses
 
             </p>
 
-            <h2 className="text-4xl font-bold text-yellow-600 mt-2">
+            <h2 className="text-4xl font-bold text-blue-600 mt-2">
 
-                {totalBelum}
+                {totalProses}
+
+            </h2>
+
+            <p className="text-gray-600">
+
+                Pegawai
+
+            </p>
+
+        </div>
+
+        <div className="bg-emerald-50 rounded-2xl shadow p-5">
+
+            <p className="text-gray-500">
+
+                🟢 Selesai
+
+            </p>
+
+            <h2 className="text-4xl font-bold text-emerald-600 mt-2">
+
+                {totalSelesai}
+
+            </h2>
+
+            <p className="text-gray-600">
+
+                Pegawai
+
+            </p>
+
+        </div>
+
+        <div className="bg-emerald-50 rounded-2xl shadow p-5">
+
+            <p className="text-gray-500">
+
+                🔴 Tidak Naik
+
+            </p>
+
+            <h2 className="text-4xl font-bold text-emerald-600 mt-2">
+
+                {totalTidakNaik}
 
             </h2>
 
@@ -340,9 +440,9 @@ const berkalaSudah = berkala.filter(
 
                     Math.round(
 
-                        totalSudah /
+                        (totalSelesai /
 
-                        totalMonitoring *
+                        berkala.length) *
 
                         100
 
@@ -361,33 +461,6 @@ const berkalaSudah = berkala.filter(
         </div>
 
       </div>
-
-    <div className="grid grid-cols-2 gap-6 mb-6">
-
-        <MonitoringTable
-
-            title="🟡 Pegawai Belum Berkala"
-
-            color="text-yellow-600"
-
-            data={berkalaBelum}
-
-            tanggalField="tanggalBerkala"
-
-        />
-
-        <MonitoringTable
-
-            title="🟢 Pegawai Sudah Berkala"
-
-            color="text-green-600"
-
-            data={berkalaSudah}
-
-            tanggalField="tanggalBerkala"
-
-        />
-    </div>
   </div>
       
       <div className="mb-6 mt-8">
@@ -460,6 +533,10 @@ const berkalaSudah = berkala.filter(
               </th>
 
               <th className="p-3 text-left">
+                Catatan
+              </th>
+
+              <th className="p-3 text-left">
                 File SK
               </th>
 
@@ -500,33 +577,41 @@ const berkalaSudah = berkala.filter(
 
                     <span
                         className={`
-                            px-3
-                            py-1
-                            rounded-full
-                            text-sm
-                            font-semibold
+                          px-3
+                          py-1
+                          rounded-full
+                          text-sm
+                          font-semibold
 
-                            ${
-                                item.status === "SUDAH"
-
-                                    ? "bg-green-100 text-green-700"
-
-                                    : "bg-yellow-100 text-yellow-700"
-                            }
+                          ${
+                              item.status === "SELESAI"
+                                  ? "bg-green-100 text-green-700"
+                              : item.status === "PROSES"
+                                  ? "bg-blue-100 text-blue-700"
+                              : item.status === "TIDAK_NAIK"
+                                  ? "bg-red-100 text-red-700"
+                              : "bg-yellow-100 text-yellow-700"
+                          }
                         `}
                     >
 
                         {
-
-                            item.status === "SUDAH"
-
-                                ? "🟢 Sudah"
-
-                                : "🟡 Belum"
-
+                          item.status === "SELESAI"
+                              ? "🟢 Selesai"
+                          : item.status === "PROSES"
+                              ? "🔵 Proses"
+                          : item.status === "TIDAK_NAIK"
+                              ? "🔴 Tidak Naik"
+                          : "🟡 Belum"
                         }
 
-                    </span>
+                  </span>
+
+                </td>
+
+                <td className="p-3">
+
+                  {item.catatan || "-"}
 
                 </td>
 
@@ -548,8 +633,8 @@ const berkalaSudah = berkala.filter(
                   </td>
 
                   <td className="p-4">
-
                       <ActionButtons
+                          detailHref={`/monitoring/berkala/${item.pegawai.id}`}
                           editHref={`/berkala/edit/${item.id}`}
                           onDelete={() => handleDelete(item.id)}
                       />

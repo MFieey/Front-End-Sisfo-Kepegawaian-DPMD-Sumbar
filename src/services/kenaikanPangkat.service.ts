@@ -17,6 +17,16 @@ export const getKenaikanPangkatById =
     return response.data;
   };
 
+export const getPangkatByPegawai = async (
+      pegawaiId: number
+  ) => {
+
+      return api.get(
+          `/kenaikan-pangkat/pegawai/${pegawaiId}`
+      );
+
+  };
+
 export const createKenaikanPangkat =
   async (data: FormData) => {
     const response =

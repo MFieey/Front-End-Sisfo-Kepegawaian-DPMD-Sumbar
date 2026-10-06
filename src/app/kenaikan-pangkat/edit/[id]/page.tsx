@@ -1,5 +1,7 @@
 "use client";
 
+import axios from "axios";
+
 import {
   useEffect,
   useState,
@@ -11,16 +13,19 @@ import ManagementLayout from "@/components/layouts/ManagementLayout";
 
 import { getPegawai } from "@/services/pegawai.service";
 
-import {
-  createKenaikanPangkat,
-} from "@/services/kenaikanPangkat.service";
-
 import { useParams } from "next/navigation";
 
 import {
   getKenaikanPangkatById,
   updateKenaikanPangkat,
 } from "@/services/kenaikanPangkat.service";
+
+import {
+    showSuccess,
+    showError,
+    showLoading,
+    closeLoading
+} from "@/utils/toast";
 
 type Pegawai = {
   id: number;
@@ -44,7 +49,11 @@ export default function TambahKenaikanPangkatPage() {
       pegawaiId: "",
       tanggalPangkat: "",
       status: "",
+      catatan: "",
     });
+
+  const [oldFile, setOldFile] =
+    useState("");
 
   useEffect(() => {
     loadPegawai();
@@ -84,7 +93,13 @@ export default function TambahKenaikanPangkatPage() {
                     .split("T")[0],
                 status:
                 data.status,
+                catatan:data.catatan || "",
             });
+
+            setOldFile(
+                data.fileSK
+            );
+            
             } catch (error) {
             console.log(error);
             }
@@ -115,6 +130,11 @@ export default function TambahKenaikanPangkatPage() {
           form.status
         );
 
+        formData.append(
+            "catatan",
+            form.catatan
+        );
+
         if (file) {
           formData.append(
             "fileSK",
@@ -122,176 +142,400 @@ export default function TambahKenaikanPangkatPage() {
           );
         }
 
+        const loading = showLoading(
+            "Memperbarui data kenaikan pangkat..."
+        );
+
         await updateKenaikanPangkat(
-            id,     
+            id,
             formData
         );
 
-        alert(
-          "Data berhasil diedit"
+        closeLoading();
+
+        showSuccess(
+            "Data kenaikan pangkat berhasil diperbarui."
         );
 
-        router.push(
-          "/kenaikan-pangkat"
-        );
+        setTimeout(() => {
+
+            router.push("/kenaikan-pangkat");
+
+        }, 700);
       } catch (error) {
-        console.log(error);
 
-        alert(
-          "Gagal mengedit data"
-        );
-      }
+            closeLoading();
+
+            if (axios.isAxiosError(error)) {
+
+                showError(
+                    error.response?.data?.message ||
+                    "Gagal memperbarui data."
+                );
+
+            } else {
+
+                showError("Terjadi kesalahan.");
+
+            }
+
+        }
     };
 
   const inputClass =
     "w-full border rounded p-2";
 
+    const disableSubmit =
+
+        (form.status==="SELESAI"
+
+            &&
+
+            !file
+
+            &&
+
+            !oldFile)
+
+            ||
+
+        (
+
+            form.status==="TIDAK_NAIK"
+
+            &&
+
+            !form.catatan.trim()
+
+        );
+
   return (
     <ManagementLayout>
-      <h1 className="text-3xl font-bold mb-5">
-        Edit Kenaikan Pangkat
-      </h1>
-
-      <form
-        onSubmit={
-          handleSubmit
-        }
-        className="
-          bg-white
-          p-5
-          rounded-lg
-          shadow
-          space-y-4
-        "
-      >
-        <div>
-          <label>
-            Pegawai
-          </label>
-
-          <select
-            value={
-              form.pegawaiId
-            }
-            onChange={(e) =>
-              setForm({
-                ...form,
-                pegawaiId:
-                  e.target.value,
-              })
-            }
-            className={
-              inputClass
-            }
+          <div className="bg-gradient-to-r from-green-600 to-emerald-500 rounded-2xl shadow-lg p-6 text-white">
+    
+              <h1 className="text-3xl font-bold">
+                  Edit Kenaikan Pangkat
+              </h1>
+    
+              <p className="mt-2 opacity-90">
+                  Perbarui data kenaikan pangkat beserta
+                  dokumen Surat Keputusan Kenaikan Pangkat.
+              </p>
+    
+          </div>
+    
+          <form
+              onSubmit={handleSubmit}
+              className="mt-6 space-y-6"
           >
-            <option value="">
-              Pilih Pegawai
-            </option>
+            <div className="bg-white rounded-2xl shadow p-6">
+    
+              <h2 className="text-xl font-bold flex items-center gap-2 mb-5">
+                  👤 Data Pegawai
+              </h2>
+    
+              <div>
+    
+                  <label className="block mb-2 font-medium">
+    
+                      Pegawai
+    
+                      <span className="text-red-500">*</span>
+    
+                  </label>
+    
+                  <select
+                      value={form.pegawaiId}
+                      onChange={(e) =>
+                          setForm({
+                              ...form,
+                              pegawaiId: e.target.value,
+                          })
+                      }
+                      className={inputClass}
+                  >
+    
+                      <option value="">
+    
+                          Pilih Pegawai
+    
+                      </option>
+    
+                      {
+    
+                          pegawai.map((item) => (
+    
+                              <option
+                                  key={item.id}
+                                  value={item.id}
+                              >
+    
+                                  {item.nama} - {item.nip}
+    
+                              </option>
+    
+                          ))
+    
+                      }
+    
+                  </select>
+    
+            </div>
+    
+          </div>
+    
+            <div className="bg-white rounded-2xl shadow p-6">
+    
+              <h2 className="text-xl font-bold flex items-center gap-2 mb-5">
+    
+                  📅 Informasi Pangkat
+    
+              </h2>
+    
+              <div className="grid md:grid-cols-2 gap-6">
+    
+                  <div>
+    
+                      <label className="block mb-2 font-medium">
+    
+                          Tanggal Pangkat
+    
+                      </label>
+    
+                      <input
+                          type="date"
+                          value={form.tanggalPangkat}
+                          onChange={(e) =>
+                              setForm({
+                                  ...form,
+                                  tanggalPangkat:
+                                      e.target.value,
+                              })
+                          }
+                          className={inputClass}
+                      />
+    
+                  </div>
+    
+                  <div>
+    
+                      <label className="block mb-2 font-medium">
+    
+                          Status
+    
+                      </label>
+    
+                      <select
+                          value={form.status}
+                          onChange={(e)=>{
 
-            {pegawai.map(
-              (item) => (
-                <option
-                  key={item.id}
-                  value={item.id}
+                                const value=e.target.value;
+
+                                setForm({
+
+                                    ...form,
+
+                                    status:value,
+
+                                    catatan:
+                                        value==="TIDAK_NAIK"
+                                        ? form.catatan
+                                        : "",
+
+                                });
+
+                            }}
+                          className={inputClass}
+                      >
+    
+                          <option value="">
+                              Pilih Status
+                          </option>
+    
+                          <option value="BELUM">
+                              Belum
+                          </option>
+    
+                          <option value="PROSES">
+                              Proses
+                          </option>
+    
+                          <option value="SELESAI">
+                              Selesai
+                          </option>
+
+                          <option value="TIDAK_NAIK">
+                                Tidak Naik
+                            </option>
+    
+                      </select>
+    
+                  </div>
+
+                  {form.status === "TIDAK_NAIK" && (
+
+                    <div className="md:col-span-2">
+
+                        <label className="block mb-2 font-medium">
+
+                            Alasan Tidak Naik
+
+                            <span className="text-red-500">*</span>
+
+                        </label>
+
+                        <textarea
+                            rows={4}
+                            value={form.catatan}
+                            onChange={(e) =>
+                                setForm({
+                                    ...form,
+                                    catatan: e.target.value,
+                                })
+                            }
+                            className={inputClass}
+                            placeholder="Masukkan alasan tidak naik pangkat..."
+                        />
+
+                    </div>
+
+                    )}
+    
+              </div>
+    
+          </div>
+    
+          <div className="bg-white rounded-2xl shadow p-6">
+    
+            <h2 className="text-xl font-bold flex items-center gap-2 mb-5">
+    
+                📄 Dokumen Saat Ini
+    
+            </h2>
+    
+            {
+    
+                oldFile ? (
+    
+                    <div className="border rounded-xl p-4 bg-gray-50">
+    
+                        <p className="font-semibold">
+    
+                            📄 {oldFile.split("/").pop()}
+    
+                        </p>
+    
+                        <p className="text-gray-500 text-sm mt-1">
+    
+                            File yang saat ini tersimpan.
+    
+                        </p>
+    
+                        <a
+                            href={`${process.env.NEXT_PUBLIC_API_URL}/uploads/pangkat/${oldFile}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                        >
+                            👁 Lihat PDF
+                        </a>
+    
+                    </div>
+    
+                ) : (
+    
+                    <div className="border rounded-xl p-4 bg-yellow-50 text-yellow-700">
+    
+                        Belum ada dokumen yang diupload.
+    
+                    </div>
+    
+                )
+    
+            }
+    
+        </div>
+    
+            <div className="bg-white rounded-2xl shadow p-6">
+    
+              <h2 className="text-xl font-bold flex items-center gap-2 mb-5">
+    
+                  📄 Upload Dokumen
+    
+              </h2>
+    
+              <label className="block mb-3 font-medium">
+    
+                  Surat Pemberitahuan Kenaikan Pangkat (PDF)
+    
+              </label>
+    
+              <input
+                  type="file"
+                  accept=".pdf"
+                  onChange={(e) =>
+                      setFile(
+                          e.target.files?.[0] || null
+                      )
+                  }
+                  className={inputClass}
+              />
+    
+              {
+    
+                  file && (
+    
+                      <div className="mt-4 rounded-lg bg-green-50 border border-green-200 p-3">
+    
+                          <p className="text-green-700">
+    
+                              ✅ {file.name}
+    
+                          </p>
+    
+                      </div>
+    
+                  )
+    
+              }
+    
+          </div>
+    
+            <div className="flex justify-end gap-3">
+    
+              <button
+                  type="button"
+                  onClick={() => router.back()}
+                  className="px-5 py-2 rounded-lg border"
+              >
+    
+                  Batal
+    
+              </button>
+    
+              <button
+                type="submit"
+                disabled={disableSubmit}
+                className={`
+                    px-6
+                    py-2
+                    rounded-lg
+                    shadow
+                    text-white
+                    transition
+
+                    ${
+                        disableSubmit
+                            ? "bg-gray-400 cursor-not-allowed"
+                            : "bg-green-600 hover:bg-green-700"
+                    }
+                `}
                 >
-                  {item.nama}
-                  {" - "}
-                  {item.nip}
-                </option>
-              )
-            )}
-          </select>
-        </div>
-
-        <div>
-          <label>
-            Tanggal Kenaikan Pangkat
-          </label>
-
-          <input
-            type="date"
-            value={
-              form.tanggalPangkat
-            }
-            onChange={(e) =>
-              setForm({
-                ...form,
-                tanggalPangkat:
-                  e.target.value,
-              })
-            }
-            className={
-              inputClass
-            }
-          />
-        </div>
-
-        <div>
-          <label>
-            Status
-          </label>
-
-          <select
-            value={
-              form.status
-            }
-            onChange={(e) =>
-              setForm({
-                ...form,
-                status:
-                  e.target.value,
-              })
-            }
-            className={
-              inputClass
-            }
-          >
-            <option value="BELUM">
-
-              Belum
-
-              </option>
-
-              <option value="SUDAH">
-
-              Sudah
-
-              </option>
-          </select>
-        </div>
-
-        <div>
-          <label>
-            File SK (PDF)
-          </label>
-
-          <input
-            type="file"
-            accept=".pdf"
-            onChange={(e) =>
-              setFile(
-                e.target.files?.[0] ||
-                  null
-              )
-            }
-            className={
-              inputClass
-            }
-          />
-        </div>
-
-        <button
-          className="
-            bg-blue-600
-            text-white
-            px-4
-            py-2
-            rounded
-          "
-        >
-          Simpan
-        </button>
-      </form>
-    </ManagementLayout>
+                    💾 Update Pangkat
+                </button>
+    
+          </div>
+          </form>
+        </ManagementLayout>
   );
 }

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-import ManagementLayout from "@/components/layouts/ManagementLayout";
+import PimpinanLayout from "@/components/layouts/PimpinanLayout";
 
 import {
   getKenaikanPangkat,
@@ -11,22 +11,26 @@ import {
 } from "@/services/kenaikanPangkat.service";
 
 import Button from "@/components/ui/Button";
-import ActionButtons from "@/components/ui/ActionButtons";
+import ActionButtons from "@/components/ui/ActionButtonsPimpinan";
 import PageHeader from "@/components/ui/PageHeader";
 import MonitoringSummary
 from "@/components/monitoring/MonitoringSummary";
-
+import MonitoringFilter
+from "@/components/monitoring/MonitoringFilter";
 import MonitoringTable
 from "@/components/monitoring/MonitoringTable";
 
-import MonitoringFilter
-from "@/components/monitoring/MonitoringFilter";
-import PimpinanLayout from "@/components/layouts/PimpinanLayout";
+import Swal from "sweetalert2";
+import {
+    showSuccess,
+    showError
+} from "@/utils/toast";
 
-type KenaikanPangkat = {
+type Pangkat = {
   id: number;
   tanggalPangkat: string;
   status: string;
+  catatan: string | null;
   fileSK: string | null;
   pegawai: {
     id: number;
@@ -36,8 +40,8 @@ type KenaikanPangkat = {
 };
 
 export default function KenaikanPangkatPage() {
-  const [kenaikanpangkat, setKenaikanPangkat] =
-    useState<KenaikanPangkat[]>([]);
+  const [pangkat, setKenaikanPangkat] =
+    useState<Pangkat[]>([]);
 
   useEffect(() => {
     loadKenaikanPangkat();
@@ -49,39 +53,70 @@ export default function KenaikanPangkatPage() {
   const [statusFilter, setStatusFilter] =
     useState("SEMUA");
 
+  const loadKenaikanPangkat =
+    async () => {
+      try {
+        const response =
+          await getKenaikanPangkat();
+
+        setKenaikanPangkat(
+          response.data
+        );
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
   const totalMonitoring =
-    kenaikanpangkat.length;
+    pangkat.length;
 
-  const totalSudah =
-      kenaikanpangkat.filter(
+  const totalSelesai =
+    pangkat.filter(
+        (item) => item.status === "SELESAI"
+    ).length;
 
-          item=>item.status==="SUDAH"
-
+  const totalProses =
+      pangkat.filter(
+          (item) => item.status === "PROSES"
       ).length;
 
   const totalBelum =
-      kenaikanpangkat.filter(
-
-          item=>item.status==="BELUM"
-
+      pangkat.filter(
+          (item) => item.status === "BELUM"
       ).length;
 
-  const pangkatBelum =
-      kenaikanpangkat.filter(
+  const totalTidakNaik =
+    pangkat.filter(
+        (item) => item.status === "TIDAK_NAIK"
+    ).length;
 
-          item=>item.status==="BELUM"
+  const progress =
+    pangkat.length > 0
+        ? (totalSelesai / pangkat.length) * 100
+        : 0;
 
-      );
+  const pangkatSelesai =
+    pangkat.filter(
+    (item)=>item.status==="SELESAI"
+  );
 
-  const pangkatSudah =
-      kenaikanpangkat.filter(
+    const pangkatProses =
+    pangkat.filter(
+    (item)=>item.status==="PROSES"
+  );
 
-          item=>item.status==="SUDAH"
+    const pangkatBelum =
+    pangkat.filter(
+    (item)=>item.status==="BELUM"
+  );
 
-      );
+  const pangkatTidakNaik =
+    pangkat.filter(
+        (item) => item.status === "TIDAK_NAIK"
+    );
 
-  const filteredPangkat =
-    kenaikanpangkat.filter((item) => {
+    const filteredPangkat =
+    pangkat.filter((item) => {
 
         const cocokNama =
             item.pegawai.nama
@@ -111,52 +146,60 @@ export default function KenaikanPangkatPage() {
 
     });
 
-  const loadKenaikanPangkat =
-    async () => {
-      try {
-        const response =
-          await getKenaikanPangkat();
+  const handleDelete = async (id: number) => {
 
-        setKenaikanPangkat(
-          response.data
-        );
-      } catch (error) {
-        console.log(error);
-      }
-    };
+    const result = await Swal.fire({
 
-  const handleDelete =
-    async (id: number) => {
-      const confirmDelete =
-        confirm(
-          "Yakin ingin menghapus data?"
-        );
+        title: "Hapus Data?",
 
-      if (!confirmDelete) return;
+        text: "Data yang dihapus tidak dapat dikembalikan.",
 
-      try {
+        icon: "warning",
+
+        showCancelButton: true,
+
+        confirmButtonColor: "#16a34a",
+
+        cancelButtonColor: "#dc2626",
+
+        confirmButtonText: "Ya, Hapus",
+
+        cancelButtonText: "Batal",
+
+        reverseButtons: true,
+
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+
         await deleteKenaikanPangkat(id);
 
-        alert(
-          "Data berhasil dihapus"
+        showSuccess(
+            "Data pangkat berhasil dihapus."
         );
 
         loadKenaikanPangkat();
-      } catch (error) {
+
+    } catch (error) {
+
         console.log(error);
 
-        alert(
-          "Gagal menghapus data"
+        showError(
+            "Gagal menghapus data pangkat."
         );
-      }
-    };
+
+    }
+
+  };
 
   return (
     <PimpinanLayout>
       <PageHeader
-        title="Monitoring Kenaikan Pangkat"
-        subtitle="Memantau pegawai yang telah dan belum melaksanakan kenaikan pangkat."
-        icon="📈"
+          title="Monitoring Kenaikan Pangkat"
+          subtitle=" Memantau proses administrasi kenaikan pangkat pegawai."
+          icon="📅"
       >
       </PageHeader>
 
@@ -192,13 +235,13 @@ export default function KenaikanPangkatPage() {
 
                     <li>
 
-                        Pegawai yang telah melaksanakan kenaikan pangkat.
+                        Pegawai yang sedang diproses kenaikan pangkat.
 
                     </li>
 
                     <li>
 
-                        Pegawai yang belum melaksanakan kenaikan pangkat.
+                        Pegawai yang telah selesai kenaikan pangkat.
 
                     </li>
 
@@ -218,19 +261,19 @@ export default function KenaikanPangkatPage() {
 
                     <li>
 
-                        Memastikan proses kenaikan pangkat diproses tepat waktu.
+                        Memastikan proses kenaikan pangkat berjalan tepat waktu.
 
                     </li>
 
                     <li>
 
-                        Menghindari keterlambatan administrasi.
+                        Memantau kelengkapan administrasi.
 
                     </li>
 
                     <li>
 
-                        Membantu pimpinan memantau perkembangan kenaikan pangkat pegawai.
+                        Membantu pengambilan keputusan pimpinan.
 
                     </li>
 
@@ -244,35 +287,79 @@ export default function KenaikanPangkatPage() {
 
       <div className="bg-white rounded-2xl shadow p-5 mb-6">
 
-      <MonitoringSummary
+        <MonitoringSummary
+        
+          total={pangkat.length}
+        
+          selesai={totalSelesai}
+        
+          proses={totalProses}
+        
+          belum={totalBelum}
+        
+          progress={progress}
+        
+          tidakNaik={totalTidakNaik}
+        
+        />
 
-        title="Monitoring Kenaikan Pangkat"
-
-        total={totalMonitoring}
-
-        sudah={totalSudah}
-
-        belum={totalBelum}
-
-        color="text-red-600"
-
-        icon="📈"
-
-      />
-
-      <div className="grid grid-cols-4 gap-5 my-6">
+      <div className="grid grid-cols-6 gap-5 my-6">
 
         <div className="bg-green-50 rounded-2xl shadow p-5">
 
             <p className="text-gray-500">
 
-                📅 Berkala Bulan Ini
+                📅 Kenaikan Pangkat Bulan Ini
 
             </p>
 
             <h2 className="text-4xl font-bold text-green-700 mt-2">
 
-                {kenaikanpangkat.length}
+                {pangkat.length}
+
+            </h2>
+
+            <p className="text-gray-600">
+
+                Pegawai
+
+            </p>
+
+        </div>
+
+        <div className="bg-green-50 rounded-2xl shadow p-5">
+
+            <p className="text-gray-500">
+
+                🟡 Belum
+
+            </p>
+
+            <h2 className="text-4xl font-bold text-yellow-600 mt-2">
+
+                {totalBelum}
+
+            </h2>
+
+            <p className="text-gray-600">
+
+                Pegawai
+
+            </p>
+
+        </div>
+
+        <div className="bg-blue-50 rounded-2xl shadow p-5">
+
+            <p className="text-gray-500">
+
+                🔵 Proses
+
+            </p>
+
+            <h2 className="text-4xl font-bold text-blue-600 mt-2">
+
+                {totalProses}
 
             </h2>
 
@@ -288,13 +375,13 @@ export default function KenaikanPangkatPage() {
 
             <p className="text-gray-500">
 
-                🟢 Sudah
+                🟢 Selesai
 
             </p>
 
             <h2 className="text-4xl font-bold text-emerald-600 mt-2">
 
-                {totalSudah}
+                {totalSelesai}
 
             </h2>
 
@@ -306,17 +393,17 @@ export default function KenaikanPangkatPage() {
 
         </div>
 
-        <div className="bg-yellow-50 rounded-2xl shadow p-5">
+        <div className="bg-emerald-50 rounded-2xl shadow p-5">
 
             <p className="text-gray-500">
 
-                🟡 Belum
+                🔴 Tidak Naik
 
             </p>
 
-            <h2 className="text-4xl font-bold text-yellow-600 mt-2">
+            <h2 className="text-4xl font-bold text-emerald-600 mt-2">
 
-                {totalBelum}
+                {totalTidakNaik}
 
             </h2>
 
@@ -350,9 +437,9 @@ export default function KenaikanPangkatPage() {
 
                     Math.round(
 
-                        totalSudah /
+                        (totalSelesai /
 
-                        totalMonitoring *
+                        pangkat.length) *
 
                         100
 
@@ -371,70 +458,41 @@ export default function KenaikanPangkatPage() {
         </div>
 
       </div>
-
-      <div className="grid grid-cols-2 gap-6 mb-6">
-
-        <MonitoringTable
-
-          title="🔴 Pegawai Belum Naik Pangkat"
-
-          data={pangkatBelum}
-
-          tanggalField="tanggalPangkat"
-
-          color="text-red-600"
-
-        />
-
-        <MonitoringTable
-
-          title="🟢 Pegawai Sudah Naik Pangkat"
-
-          data={pangkatSudah}
-
-          tanggalField="tanggalPangkat"
-
-          color="text-green-600"
-
-        />
-
-      </div>
-    </div>
-
+  </div>
+      
       <div className="mb-6 mt-8">
 
         <div className="border-t border-gray-200 pt-6">
 
-        <h2 className="text-2xl font-bold">
+            <h2 className="text-2xl font-bold text-gray-800">
 
-        📋 Riwayat Monitoring Kenaikan Pangkat
+                📋 Riwayat Monitoring Pangkat
 
-        </h2>
+            </h2>
 
-        <p className="text-gray-500 mt-2">
+            <p className="text-gray-500 mt-2">
 
-        Kelola seluruh data monitoring kenaikan pangkat pegawai.
+                Kelola seluruh data monitoring kenaikan pangkat pegawai.
 
-        </p>
+            </p>
 
         </div>
 
       </div>
-    
-      <MonitoringFilter
+        <MonitoringFilter
 
-        search={search}
+          search={search}
 
-        setSearch={setSearch}
+          setSearch={setSearch}
 
-        statusFilter={statusFilter}
+          statusFilter={statusFilter}
 
-        setStatusFilter={setStatusFilter}
+          setStatusFilter={setStatusFilter}
 
-      >
+        >
 
-      </MonitoringFilter>
-
+        </MonitoringFilter>
+      
       <div
         className="
         bg-white
@@ -464,7 +522,7 @@ export default function KenaikanPangkatPage() {
               </th>
 
               <th className="p-3 text-left">
-                Tanggal Kenaikan Pangkat
+                Tanggal Pangkat
               </th>
 
               <th className="p-3 text-left">
@@ -472,7 +530,15 @@ export default function KenaikanPangkatPage() {
               </th>
 
               <th className="p-3 text-left">
+                Catatan
+              </th>
+
+              <th className="p-3 text-left">
                 File SK
+              </th>
+
+              <th className="p-3 text-center">
+                Aksi
               </th>
             </tr>
           </thead>
@@ -504,39 +570,47 @@ export default function KenaikanPangkatPage() {
                     )}
                   </td>
 
-                  <td className="p-3">
+                 <td className="p-3">
 
                     <span
                         className={`
-                            px-3
-                            py-1
-                            rounded-full
-                            text-sm
-                            font-semibold
+                          px-3
+                          py-1
+                          rounded-full
+                          text-sm
+                          font-semibold
 
-                            ${
-                                item.status === "SUDAH"
-
-                                    ? "bg-green-100 text-green-700"
-
-                                    : "bg-red-100 text-red-700"
-                            }
+                          ${
+                              item.status === "SELESAI"
+                                  ? "bg-green-100 text-green-700"
+                              : item.status === "PROSES"
+                                  ? "bg-blue-100 text-blue-700"
+                              : item.status === "TIDAK_NAIK"
+                                  ? "bg-red-100 text-red-700"
+                              : "bg-yellow-100 text-yellow-700"
+                          }
                         `}
                     >
 
                         {
-
-                            item.status === "SUDAH"
-
-                                ? "🟢 Sudah"
-
-                                : "🔴 Belum"
-
+                          item.status === "SELESAI"
+                              ? "🟢 Selesai"
+                          : item.status === "PROSES"
+                              ? "🔵 Proses"
+                          : item.status === "TIDAK_NAIK"
+                              ? "🔴 Tidak Naik"
+                          : "🟡 Belum"
                         }
 
-                    </span>
+                  </span>
 
-                  </td>
+                </td>
+
+                <td className="p-3">
+
+                  {item.catatan || "-"}
+
+                </td>
 
                   <td className="p-3">
                     {item.fileSK ? (
@@ -553,6 +627,13 @@ export default function KenaikanPangkatPage() {
                     ) : (
                       "-"
                     )}
+                  </td>
+
+                  <td className="p-4">
+                      <ActionButtons
+                          detailHref={`/pimpinan/monitoring/pangkat/${item.pegawai.id}`}
+                      />
+
                   </td>
                 </tr>
               )

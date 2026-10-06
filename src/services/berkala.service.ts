@@ -17,6 +17,16 @@ export const getBerkalaById =
     return response.data;
   };
 
+export const getBerkalaByPegawai = async (
+      pegawaiId: number
+  ) => {
+
+      return api.get(
+          `/berkala/pegawai/${pegawaiId}`
+      );
+
+  };
+
 export const createBerkala =
   async (data: FormData) => {
     const response =

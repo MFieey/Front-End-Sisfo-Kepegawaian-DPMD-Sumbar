@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import UserActionButtons from "@/components/ui/UserActionButtons";
 import AdminLayout from "@/components/layouts/AdminLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import PageHeader from "@/components/ui/PageHeader";
@@ -97,7 +97,13 @@ export default function UserPage() {
     <AdminLayout>
       <PageHeader
         title="Data User"
-      />
+        subtitle="Kelola seluruh akun administrator, operator, dan pimpinan."
+        icon="👤"
+    >
+        <Button href="/user/tambah">
+            + Tambah User
+        </Button>
+    </PageHeader>
 
       <div className="grid grid-cols-4 gap-5 mb-6">
 
@@ -163,25 +169,31 @@ export default function UserPage() {
 
     </div>
 
-      <div className="flex justify-between items-center mb-5">
+      <div className="my-6">
         <SearchBar
           value={search}
           onChange={setSearch}
           placeholder="Cari nama atau username..."
         />
-
-        <Button
-          href="/user/tambah"
-        >
-          👤 + Tambah User
-        </Button>
-
       </div>
 
-      <div className="bg-white rounded-lg shadow p-5 overflow-x-auto">
+      <div
+          className="
+          bg-white
+          rounded-2xl
+          shadow
+          overflow-hidden
+        "
+      >
         <table className="w-full">
           <thead>
-            <tr className="border-b">
+            <tr
+                className="
+                bg-gradient-to-r
+                from-green-700
+                to-emerald-600
+                text-white
+            ">
               <th className="p-3 text-left">
                 No
               </th>
@@ -217,17 +229,17 @@ export default function UserPage() {
                   key={item.id}
                   className="border-b"
                 >
-                  <td className="p-3">
+                  <td className="p-4">
                     {index + 1}
                   </td>
 
-                  <td className="p-3">
+                  <td className="p-4">
                     {item.nama}
                   </td>
-                  <td className="p-3">
+                  <td className="p-4">
                     {item.username}
                   </td>
-                  <td className="p-3 text-center">
+                  <td className="p-4 text-center">
                     {
                       <RoleBadge
                         role={item.role}
@@ -235,7 +247,7 @@ export default function UserPage() {
                       }
                   </td>
 
-                  <td className="p-3 text-center">
+                  <td className="p-4 text-center">
 
                   {
                   loginUser?.id===item.id ?
@@ -276,58 +288,13 @@ export default function UserPage() {
 
                   </td>
 
-                  <td className="p-3 text-center">
-                    <Link
-                      href={`/user/edit/${item.id}`}
-                      className="
-                        bg-yellow-500
-                        text-white
-                        px-3
-                        py-1
-                        rounded
-                        mr-2
-                      "
-                    >
-                      Edit User
-                    </Link>
-
-                    <Link
-                      href={`/user/password/${item.id}`}
-                      className="
-                        bg-blue-600
-                        text-white
-                        px-3
-                        py-1
-                        rounded
-                        mr-2
-                      "
-                    >
-                      🔑 Reset Password
-                    </Link>
-
-                    <button
-                      disabled={
-                          loginUser?.id === item.id
-                      }
-
-                      onClick={() =>
-                          handleDelete(item.id)
-                      }
-
-                      className={`
-                          px-3
-                          py-1
-                          rounded
-                          text-white
-                          ${
-                              loginUser?.id === item.id
-                              ? "bg-gray-400 cursor-not-allowed"
-                              : "bg-red-500"
-                          }
-                      `}
-                    >
-                        🗑️ Hapus User
-                    </button>
+                  <td className="p-4 text-center">
+                    <UserActionButtons
+                        editHref={`/user/edit/${item.id}`}
+                        resetHref={`/user/password/${item.id}`}
+                        disabled={loginUser?.id === item.id}
+                        onDelete={() => handleDelete(item.id)}
+                    />
                   </td>
                 </tr>
               )
@@ -336,7 +303,7 @@ export default function UserPage() {
             {users.length === 0 && (
               <tr>
                 <td
-                  colSpan={5}
+                  colSpan={6}
                   className="
                     p-5
                     text-center

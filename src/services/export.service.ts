@@ -49,7 +49,13 @@ export const exportMonitoringPeriodePdf = async (
 
     month:number,
 
-    year:number
+    year:number,
+
+    status:string,
+    
+    statusDokumen:string,
+
+    date:string
 
 ) => {
 
@@ -67,6 +73,12 @@ export const exportMonitoringPeriodePdf = async (
 
                 year,
 
+                status,
+
+                statusDokumen,
+
+                date,
+
             },
 
             responseType:"blob",
@@ -77,13 +89,37 @@ export const exportMonitoringPeriodePdf = async (
 
 };
 
+export const exportMonitoringBerkalaPdf = () => {
+    return api.get(
+        "/export/monitoring/berkala/pdf",
+        {
+            responseType: "blob",
+        }
+    );
+};
+
+export const exportMonitoringPangkatPdf = () => {
+    return api.get(
+        "/export/monitoring/pangkat/pdf",
+        {
+            responseType: "blob",
+        }
+    );
+};
+
 export const exportMonitoringPeriodeExcel = async (
 
     type:string,
 
     month:number,
 
-    year:number
+    year:number,
+
+    status:string,
+
+    statusDokumen:string,
+
+    date:string
 
 ) => {
 
@@ -101,9 +137,59 @@ export const exportMonitoringPeriodeExcel = async (
 
                 year,
 
+                status,
+
+                statusDokumen,
+
+                date,
+
             },
 
             responseType:"blob",
+
+        }
+
+    );
+
+};
+
+export const exportMonitoringDokumenPdf = async (
+
+    status: string
+
+) => {
+
+    return await api.get(
+
+        "/export/monitoring-dokumen/pdf",
+
+        {
+
+            params: {
+
+                status,
+
+            },
+
+            responseType: "blob",
+
+        }
+
+    );
+
+};
+
+export const exportPegawaiDetailPdf = async (
+    id:number
+)=>{
+
+    return api.get(
+
+        `/export/pegawai/detail/pdf?id=${id}`,
+
+        {
+
+            responseType:"blob"
 
         }
 

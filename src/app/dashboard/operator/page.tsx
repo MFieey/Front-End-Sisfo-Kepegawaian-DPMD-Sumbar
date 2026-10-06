@@ -110,19 +110,19 @@ export default function DashboardOperatorPage(){
             </div>
 
             <div className="mt-6">
-            
-                <ActivityAnalytics
-                    dashboard={dashboard}
-                />
-            
-            </div>
-
-            <div className="mt-6">
 
                 <ReminderSection
                     dashboard={dashboard}
                 />
 
+            </div>
+
+            <div className="mt-6">
+            
+                <ActivityAnalytics
+                    dashboard={dashboard}
+                />
+            
             </div>
 
             <div className="mt-6">

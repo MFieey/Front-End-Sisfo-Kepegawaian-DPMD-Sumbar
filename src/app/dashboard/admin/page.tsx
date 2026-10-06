@@ -132,16 +132,16 @@ return (
 
     <div className="mt-6">
 
-        <ActivityAnalytics
-            dashboard={dashboard}
+        <ReminderSection
+        dashboard={dashboard}
         />
 
     </div>
 
     <div className="mt-6">
 
-        <ReminderSection
-        dashboard={dashboard}
+        <ActivityAnalytics
+            dashboard={dashboard}
         />
 
     </div>

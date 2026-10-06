@@ -11,16 +11,21 @@ import ManagementLayout from "@/components/layouts/ManagementLayout";
 
 import { getPegawai } from "@/services/pegawai.service";
 
-import {
-  createBerkala,
-} from "@/services/berkala.service";
-
 import { useParams } from "next/navigation";
 
 import {
-  getBerkalaById,
-  updateBerkala,
+    getBerkalaById,
+    updateBerkala,
 } from "@/services/berkala.service";
+
+import {
+
+    showSuccess,
+    showError,
+    showLoading,
+    closeLoading
+
+} from "@/utils/toast";
 
 type Pegawai = {
   id: number;
@@ -30,8 +35,7 @@ type Pegawai = {
 
 export default function TambahBerkalaPage() {
   const router = useRouter();
-  const params = useParams();
-  const id = Number(params.id);
+  const { id } = useParams();
 
   const [pegawai, setPegawai] =
     useState<Pegawai[]>([]);
@@ -39,16 +43,24 @@ export default function TambahBerkalaPage() {
   const [file, setFile] =
     useState<File | null>(null);
 
+  const [oldFile, setOldFile] =
+    useState("");
+
   const [form, setForm] =
     useState({
       pegawaiId: "",
       tanggalBerkala: "",
       status: "",
+      catatan: "",
+      
     });
 
   useEffect(() => {
-    loadPegawai();
-    loadBerkala();
+
+      loadPegawai();
+
+      loadBerkala();
+
   }, []);
 
   const loadPegawai =
@@ -65,30 +77,43 @@ export default function TambahBerkalaPage() {
       }
     };
 
-    const loadBerkala =
-        async () => {
-            try {
-            const response =
-                await getBerkalaById(
-                id
-                );
+  const loadBerkala = async () => {
 
-            const data =
-                response.data;
+    try {
 
-            setForm({
-                pegawaiId:
+        const response = await getBerkalaById(
+            Number(id)
+        );
+
+        const data = response.data;
+
+        setForm({
+
+            pegawaiId:
                 data.pegawaiId.toString(),
-                tanggalBerkala:
-                data.tanggalBerkala
-                    .split("T")[0],
-                status:
+
+            tanggalBerkala:
+                data.tanggalBerkala.split("T")[0],
+
+            status:
                 data.status,
-            });
-            } catch (error) {
-            console.log(error);
-            }
-        };
+            
+            catatan:
+                data.catatan || "",
+
+        });
+
+        setOldFile(
+            data.fileSK
+        );
+
+    } catch (error) {
+
+        console.log(error);
+
+    }
+
+  };
 
   const handleSubmit =
     async (
@@ -122,23 +147,34 @@ export default function TambahBerkalaPage() {
           );
         }
 
+        const loading = showLoading(
+            "Memperbarui data berkala..."
+        );
+
         await updateBerkala(
-            id,     
+            Number(id),
             formData
         );
 
-        alert(
-          "Data berhasil ditambahkan"
+        closeLoading();
+
+        showSuccess(
+            "Data berkala berhasil diperbarui."
         );
 
-        router.push(
-          "/berkala"
-        );
+        setTimeout(() => {
+
+            router.push("/berkala");
+
+        }, 700);
+
       } catch (error) {
         console.log(error);
 
-        alert(
-          "Gagal menambahkan data"
+        closeLoading();
+
+        showError(
+            "Gagal memperbarui data."
         );
       }
     };
@@ -148,149 +184,318 @@ export default function TambahBerkalaPage() {
 
   return (
     <ManagementLayout>
-      <h1 className="text-3xl font-bold mb-5">
-        Edit Berkala
-      </h1>
+      <div className="bg-gradient-to-r from-green-600 to-emerald-500 rounded-2xl shadow-lg p-6 text-white">
+
+          <h1 className="text-3xl font-bold">
+              Edit Kenaikan Gaji Berkala
+          </h1>
+
+          <p className="mt-2 opacity-90">
+              Perbarui data kenaikan gaji berkala beserta dokumen 
+              Surat Pemberitahuan Kenaikan Gaji Berkala.
+          </p>
+
+      </div>
 
       <form
-        onSubmit={
-          handleSubmit
-        }
-        className="
-          bg-white
-          p-5
-          rounded-lg
-          shadow
-          space-y-4
-        "
+          onSubmit={handleSubmit}
+          className="mt-6 space-y-6"
       >
-        <div>
-          <label>
-            Pegawai
-          </label>
+        <div className="bg-white rounded-2xl shadow p-6">
 
-          <select
-            value={
-              form.pegawaiId
-            }
-            onChange={(e) =>
-              setForm({
-                ...form,
-                pegawaiId:
-                  e.target.value,
-              })
-            }
-            className={
-              inputClass
-            }
-          >
-            <option value="">
-              Pilih Pegawai
-            </option>
+          <h2 className="text-xl font-bold flex items-center gap-2 mb-5">
+              👤 Data Pegawai
+          </h2>
 
-            {pegawai.map(
-              (item) => (
-                <option
-                  key={item.id}
-                  value={item.id}
-                >
-                  {item.nama}
-                  {" - "}
-                  {item.nip}
-                </option>
-              )
-            )}
-          </select>
+          <div>
+
+              <label className="block mb-2 font-medium">
+
+                  Pegawai
+
+                  <span className="text-red-500">*</span>
+
+              </label>
+
+              <select
+                  value={form.pegawaiId}
+                  onChange={(e) =>
+                      setForm({
+                          ...form,
+                          pegawaiId: e.target.value,
+                      })
+                  }
+                  className={inputClass}
+              >
+
+                  <option value="">
+
+                      Pilih Pegawai
+
+                  </option>
+
+                  {
+
+                      pegawai.map((item) => (
+
+                          <option
+                              key={item.id}
+                              value={item.id}
+                          >
+
+                              {item.nama} - {item.nip}
+
+                          </option>
+
+                      ))
+
+                  }
+
+              </select>
+
         </div>
 
-        <div>
-          <label>
-            Tanggal Berkala
+      </div>
+
+        <div className="bg-white rounded-2xl shadow p-6">
+
+          <h2 className="text-xl font-bold flex items-center gap-2 mb-5">
+
+              📅 Informasi Berkala
+
+          </h2>
+
+          <div className="grid md:grid-cols-2 gap-6">
+
+              <div>
+
+                  <label className="block mb-2 font-medium">
+
+                      Tanggal Berkala
+
+                  </label>
+
+                  <input
+                      type="date"
+                      value={form.tanggalBerkala}
+                      onChange={(e) =>
+                          setForm({
+                              ...form,
+                              tanggalBerkala:
+                                  e.target.value,
+                          })
+                      }
+                      className={inputClass}
+                  />
+
+              </div>
+
+              <div>
+
+                  <label className="block mb-2 font-medium">
+
+                      Status
+
+                  </label>
+
+                  <select
+                      value={form.status}
+                      onChange={(e) =>
+                          setForm({
+                              ...form,
+                              status:
+                                  e.target.value,
+                          })
+                      }
+                      className={inputClass}
+                  >
+
+                      <option value="">
+                          Pilih Status
+                      </option>
+
+                      <option value="BELUM">
+                          Belum
+                      </option>
+
+                      <option value="PROSES">
+                          Proses
+                      </option>
+
+                      <option value="SELESAI">
+                          Selesai
+                      </option>
+
+                      <option value="TIDAK_NAIK">
+                          Tidak Naik
+                      </option>
+
+                  </select>
+
+              </div>
+
+              {form.status === "TIDAK_NAIK" && (
+
+                    <div className="mt-6">
+
+                        <label className="block mb-2 font-medium">
+
+                            Alasan Tidak Naik
+
+                            <span className="text-red-500">*</span>
+
+                        </label>
+
+                        <textarea
+
+                            value={form.catatan}
+
+                            onChange={(e)=>
+
+                                setForm({
+
+                                    ...form,
+
+                                    catatan:e.target.value,
+
+                                })
+
+                            }
+
+                            rows={4}
+
+                            className={inputClass}
+
+                            placeholder="Masukkan alasan pegawai tidak mendapatkan kenaikan berkala..."
+
+                        />
+
+                    </div>
+
+                )}
+
+          </div>
+
+      </div>
+
+      <div className="bg-white rounded-2xl shadow p-6">
+
+        <h2 className="text-xl font-bold flex items-center gap-2 mb-5">
+
+            📄 Dokumen Saat Ini
+
+        </h2>
+
+        {
+
+            oldFile ? (
+
+                <div className="border rounded-xl p-4 bg-gray-50">
+
+                    <p className="font-semibold">
+
+                        📄 {oldFile.split("/").pop()}
+
+                    </p>
+
+                    <p className="text-gray-500 text-sm mt-1">
+
+                        File yang saat ini tersimpan.
+
+                    </p>
+
+                    <a
+                        href={`${process.env.NEXT_PUBLIC_API_URL}/uploads/berkala/${oldFile}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                    >
+                        👁 Lihat PDF
+                    </a>
+
+                </div>
+
+            ) : (
+
+                <div className="border rounded-xl p-4 bg-yellow-50 text-yellow-700">
+
+                    Belum ada dokumen yang diupload.
+
+                </div>
+
+            )
+
+        }
+
+    </div>
+
+        <div className="bg-white rounded-2xl shadow p-6">
+
+          <h2 className="text-xl font-bold flex items-center gap-2 mb-5">
+
+              📄 Upload Dokumen
+
+          </h2>
+
+          <label className="block mb-3 font-medium">
+
+              Surat Pemberitahuan Kenaikan Gaji Berkala (PDF)
+
           </label>
 
           <input
-            type="date"
-            value={
-              form.tanggalBerkala
-            }
-            onChange={(e) =>
-              setForm({
-                ...form,
-                tanggalBerkala:
-                  e.target.value,
-              })
-            }
-            className={
-              inputClass
-            }
+              type="file"
+              accept=".pdf"
+              onChange={(e) =>
+                  setFile(
+                      e.target.files?.[0] || null
+                  )
+              }
+              className={inputClass}
           />
-        </div>
 
-        <div>
-          <label>
-            Status
-          </label>
+          {
 
-          <select
-            value={
-              form.status
-            }
-            onChange={(e) =>
-              setForm({
-                ...form,
-                status:
-                  e.target.value,
-              })
-            }
-            className={
-              inputClass
-            }
-          >
-            <option value="BELUM">
+              file && (
 
-              Belum
+                  <div className="mt-4 rounded-lg bg-green-50 border border-green-200 p-3">
 
-              </option>
+                      <p className="text-green-700">
 
-              <option value="SUDAH">
+                          ✅ {file.name}
 
-              Sudah
+                      </p>
 
-              </option>
-          </select>
-        </div>
+                  </div>
 
-        <div>
-          <label>
-            File SK (PDF)
-          </label>
-
-          <input
-            type="file"
-            accept=".pdf"
-            onChange={(e) =>
-              setFile(
-                e.target.files?.[0] ||
-                  null
               )
-            }
-            className={
-              inputClass
-            }
-          />
-        </div>
 
-        <button
-          className="
-            bg-blue-600
-            text-white
-            px-4
-            py-2
-            rounded
-          "
-        >
-          Simpan
-        </button>
+          }
+
+      </div>
+
+        <div className="flex justify-end gap-3">
+
+          <button
+              type="button"
+              onClick={() => router.back()}
+              className="px-5 py-2 rounded-lg border"
+          >
+
+              Batal
+
+          </button>
+
+          <button
+              className="bg-green-600 hover:bg-green-700 transition text-white px-6 py-2 rounded-lg shadow"
+
+          >
+
+              💾 Update Berkala
+
+          </button>
+
+      </div>
       </form>
     </ManagementLayout>
   );

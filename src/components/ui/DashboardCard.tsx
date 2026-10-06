@@ -9,40 +9,39 @@ export default function DashboardCards({
 }: Props) {
 
     const cards = [
-
         {
             title: "Total Pegawai",
             value: dashboard.totalPegawai,
             icon: "👥",
             color: "green",
+            description: "Data pegawai aktif",
         },
-
         {
             title: "Bidang",
             value: dashboard.totalBidang,
             icon: "🏢",
             color: "blue",
+            description: "Unit kerja yang terdaftar",
         },
-
         {
             title: "Berkala",
             value: dashboard.totalMonitoringBerkala,
             icon: "📅",
             color: "yellow",
+            description: "Monitoring kenaikan gaji berkala",
         },
-
         {
             title: "Naik Pangkat",
             value: dashboard.totalMonitoringPangkat,
             icon: "📈",
             color: "red",
+            description: "Monitoring kenaikan pangkat",
         },
-
     ];
 
     return (
 
-        <div className="grid grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
 
             {cards.map((card, index) => (
 
@@ -55,43 +54,80 @@ export default function DashboardCards({
                     border
                     border-gray-100
                     p-6
-                    hover:-translate-y-2
-                    hover:shadow-xl
+                    hover:-translate-y-1
+                    hover:shadow-2xl
                     transition-all
                     duration-300
                     "
                 >
 
-                    <div className="text-5xl">
+                    <div className="flex items-center gap-4">
 
-                        {card.icon}
+                        <div
+                            className={`
+                            w-14
+                            h-14
+                            rounded-xl
+                            flex
+                            items-center
+                            justify-center
+                            text-3xl
+                            ${
+                                card.color === "green"
+                                    ? "bg-green-100 text-green-600"
+                                    : card.color === "blue"
+                                    ? "bg-blue-100 text-blue-600"
+                                    : card.color === "yellow"
+                                    ? "bg-yellow-100 text-yellow-600"
+                                    : "bg-red-100 text-red-600"
+                            }
+                            `}
+                        >
+
+                            {card.icon}
+
+                        </div>
+
+                        <div>
+
+                            <h2 className="font-semibold text-gray-800">
+
+                                {card.title}
+
+                            </h2>
+
+                            <p className="text-xs text-gray-500">
+
+                                {card.description}
+
+                            </p>
+
+                        </div>
 
                     </div>
 
-                    <h2
+                    <h1
                         className="
-                        text-4xl
+                        text-5xl
                         font-bold
-                        mt-5
+                        mt-6
                         text-gray-800
                         "
                     >
 
                         {card.value}
 
-                    </h2>
+                    </h1>
 
-                    <p
-                        className="
-                        mt-2
-                        text-gray-500
-                        font-medium
-                        "
-                    >
+                    <div className="border-t border-gray-100 mt-5 pt-3">
 
-                        {card.title}
+                        <p className="text-xs text-gray-400">
 
-                    </p>
+                            Data Sistem
+
+                        </p>
+
+                    </div>
 
                 </div>
 
